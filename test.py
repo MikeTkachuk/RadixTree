@@ -8,7 +8,7 @@ file_size = 370103
 test_vocab_list = []
 test_size = 300
 
-with open('C://Users//Michael//Downloads//words_alpha.txt', 'r') as words_alpha:
+with open('words_alpha.txt', 'r') as words_alpha:
     for line in words_alpha:
         if random.random() < test_vocab_size/file_size:
             test_vocab_list.append(str(line.strip()))
