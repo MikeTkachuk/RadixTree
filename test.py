@@ -1,4 +1,4 @@
-from RadixTree_class import *
+from RadixTree import *
 import random
 import numpy as np
 
