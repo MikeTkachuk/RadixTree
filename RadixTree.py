@@ -27,7 +27,7 @@ class RadixTree:
     kids(target: str)
         returns a list of kids of the given string
     """
-    def __init__(self, data):
+    def __init__(self, data=[]):
         """
         Initializes root as an empty string Node
         and adds each string in data parameter to the tree using
@@ -43,8 +43,10 @@ class RadixTree:
 
         self.root = Node('')
 
-        for code in data:
-            self.add_string(code)
+        for string in data:
+            if string == "":
+                continue
+            self.add_string(string)
 
     def __len__(self):
         return self.__search_for_ends_count(self.root)
@@ -128,6 +130,11 @@ class RadixTree:
             if child:
                 ever_found_node = True
                 child_backup = child
+                # handles repetitive string addition
+                if character == len(string):
+                    # jumps to the node that already has the string written
+                    # means that the 'end' indicator is not falsely placed on the node above
+                    temp_root = child_backup
             else:
                 if ever_found_node:
                     temp_root = child_backup
@@ -146,6 +153,7 @@ class RadixTree:
                     temp_root.add_node(string[character - 1:])
                     temp_root = temp_root.children[-1]
                     character = len(string) + 1
+
             character += 1
         else:
             temp_root.add_indicator('end')
@@ -212,7 +220,8 @@ class RadixTree:
         ---------
 
         target: str
-            A string the kids of which are required
+            A string the kids of which are required.
+            Is not required to be in the tree
 
         Returns
         -------
