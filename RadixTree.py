@@ -27,7 +27,7 @@ class RadixTree:
     kids(target: str)
         returns a list of kids of the given string
     """
-    def __init__(self, data=[]):
+    def __init__(self, data=None):
         """
         Initializes root as an empty string Node
         and adds each string in data parameter to the tree using
@@ -42,6 +42,14 @@ class RadixTree:
         """
 
         self.root = Node('')
+        if data is None:
+            return
+
+        if isinstance(data,str):
+            if data == "":
+                return
+            self.add_string(data)
+            return
 
         for string in data:
             if string == "":
@@ -57,8 +65,8 @@ class RadixTree:
         inner_count = -1
         while output != '':
             output = ''
-            for i in range(len(self.root.children) - 1):
-                output, inner_count = self.__search_for_end_by_num(self.root.children[i + 1], counter, inner_count, '')
+            for i in range(len(self.root.children)):
+                output, inner_count = self.__search_for_end_by_num(self.root.children[i], counter, inner_count, '')
                 if output != '':
                     break
             counter += 1
@@ -100,7 +108,7 @@ class RadixTree:
         else:
             if not found_kid and target != '':
                 return False
-            if left_cursor == len(target) and temp_root.children[0] == 'end':
+            if left_cursor == len(target) and temp_root.end:
                 return True
             else:
                 return False
@@ -145,8 +153,10 @@ class RadixTree:
                     else:
                         lower_part = Node(temp_root.value[character - left_cursor - 1:])
                         lower_part.children = temp_root.children
+                        lower_part.end = temp_root.end
                         temp_root.value = temp_root.value[:character - left_cursor - 1]
-                        temp_root.children = [0, lower_part, Node(string[character - 1:])]
+                        temp_root.children = [lower_part, Node(string[character - 1:])]
+                        temp_root.end = False
                         temp_root = temp_root.children[-1]
                         character = len(string) + 1
                 else:
@@ -156,7 +166,7 @@ class RadixTree:
 
             character += 1
         else:
-            temp_root.add_indicator('end')
+            temp_root.set_ending(True)
 
     def add_multiple(self, data):
         """
@@ -204,7 +214,7 @@ class RadixTree:
                 parent += next_node.value
                 temp_root = next_node
                 left_cursor = character
-                if temp_root.children[0] == 'end':
+                if temp_root.end:
                     output.append(parent)
             character += 1
 
@@ -261,7 +271,7 @@ class RadixTree:
         #    output += [closest_kid]
 
         # search for ends from the node found
-        for i in range(1, len(temp_root.children)):
+        for i in range(len(temp_root.children)):
             output += self.__search_for_ends_save_values(temp_root.children[i], closest_kid)
 
         return output
@@ -273,10 +283,10 @@ class RadixTree:
         output = []
         temp_root = start
         kid = parent + temp_root.value
-        if temp_root.children[0] == 'end':
+        if temp_root.end:
             output = [kid]
 
-        for i in range(1, len(temp_root.children)):
+        for i in range(len(temp_root.children)):
             output += self.__search_for_ends_save_values(temp_root.children[i], kid)
         return output
 
@@ -286,10 +296,10 @@ class RadixTree:
 
         output = 0
         temp_root = start
-        if temp_root.children[0] == 'end':
+        if temp_root.end:
             output += 1
 
-        for i in range(1, len(temp_root.children)):
+        for i in range(len(temp_root.children)):
             output += self.__search_for_ends_count(temp_root.children[i])
         return output
 
@@ -305,14 +315,14 @@ class RadixTree:
         # returns the output string and counter (to keep on searching if reached the dead end)
 
         temp_root = start
-        if temp_root.children[0] == 'end':
+        if temp_root.end:
             counter = counter + 1
         value = value + temp_root.value
         if counter == number_of_el:
             return value, counter
         else:
             output = ''
-        for i in range(1, len(temp_root.children)):
+        for i in range(len(temp_root.children)):
             output, counter = self.__search_for_end_by_num(temp_root.children[i], number_of_el, counter, value)
             if output != '':
                 break

@@ -10,8 +10,10 @@ class Node:
         stores the data the Node should contain
 
     children: list
-        stores an indicator value (0 by default) in its zero position,
-        after it Node objects are appended if any
+        stores the list of children Nodes
+
+    end: bool
+        indicates whether the node is the ending of some string
 
     Methods
     -------
@@ -35,7 +37,7 @@ class Node:
     def __init__(self, value):
         """
         Initializes value attribute with value parameter
-        and children attribute with the default [0] list
+        and children attribute with the default [] list
 
         Parameters
         ----------
@@ -46,7 +48,8 @@ class Node:
         """
         self.value = value
         # the first element in children list is devoted to indicator, which can take any value
-        self.children = [0]
+        self.children = []
+        self.end = False
 
     def add_node(self, value):
         """
@@ -62,17 +65,17 @@ class Node:
         # to add a child of a particular value to self
         self.children.append(Node(value))
 
-    def add_indicator(self, indicator):
+    def set_ending(self, end:bool):
         """
         Sets the value of 0th position of children's list to the indicator parameter
 
         Parameters
         ----------
 
-        indicator
-            Any object or value the Node should be marked with
+        end : bool
+            Ending marker
         """
-        self.children[0] = indicator
+        self.end = end
 
     def child(self, value):
         """
@@ -90,7 +93,7 @@ class Node:
         False: in case no proper child was found
         """
         # checking the presence of a given value, in true case return the node desired
-        check_range = range(1, len(self.children))
+        check_range = range(len(self.children))
 
         for i in check_range:
             if value == self.children[i].value:
@@ -117,7 +120,7 @@ class Node:
         """
         # checking the presence of at least one child that starts with given value, return the desired child
         length = len(value)
-        check_range = range(1, len(self.children))
+        check_range = range(len(self.children))
         for i in check_range:
             if self.children[i].value[:length] == value:
                 return self.children[i]
