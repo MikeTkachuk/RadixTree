@@ -57,7 +57,7 @@ class RadixTree:
             self.add_string(string)
 
     def __len__(self):
-        return self.__search_for_ends_count(self.root)
+        return self._search_for_ends_count(self.root)
 
     def __iter__(self):
         output = '0'
@@ -66,7 +66,7 @@ class RadixTree:
         while output != '':
             output = ''
             for i in range(len(self.root.children)):
-                output, inner_count = self.__search_for_end_by_num(self.root.children[i], counter, inner_count, '')
+                output, inner_count = self._search_for_end_by_num(self.root.children[i], counter, inner_count, '')
                 if output != '':
                     break
             counter += 1
@@ -208,7 +208,7 @@ class RadixTree:
         temp_root = self.root
         character = 1
         left_cursor = 0
-        while character <= len(target):
+        while character < len(target):
             next_node = temp_root.child(target[left_cursor:character])
             if next_node:
                 parent += next_node.value
@@ -272,11 +272,116 @@ class RadixTree:
 
         # search for ends from the node found
         for i in range(len(temp_root.children)):
-            output += self.__search_for_ends_save_values(temp_root.children[i], closest_kid)
+            output += self._search_for_ends_save_values(temp_root.children[i], closest_kid)
 
         return output
 
-    def __search_for_ends_save_values(self, start, parent):
+    def structural_parents(self, target):
+        """
+
+        Searches for any strings formed by nodes in the tree that are hierarchically higher
+        than the input. Outputs them as a list
+
+        Parameter
+        ---------
+
+        target: str
+            A string the parents of which are required
+
+        Returns
+        -------
+
+        output: list of str
+            A list containing all of the parent strings found.
+            Returns an empty list if no parents found
+
+        """
+
+        # the function simply descends from the root down to the target collecting all the possible 'end's
+        output = []
+        parent = ''
+        temp_root = self.root
+        character = 1
+        left_cursor = 0
+        while character < len(target):
+            next_node = temp_root.child(target[left_cursor:character])
+            if next_node:
+                parent += next_node.value
+                temp_root = next_node
+                left_cursor = character
+                output.append(parent)
+            character += 1
+
+        return output
+
+    def structural_kids(self, target):
+        """
+
+        Searches for any strings formed by nodes of the tree that are hierarchically lower
+        than the input string. Outputs them as a list
+
+        Parameter
+        ---------
+
+        target: str
+            A string the kids of which are required.
+            Is not required to be in the tree
+
+        Returns
+        -------
+
+        output: list of str
+            A list containing all of the parent strings found.
+            Returns an empty list if no parents found
+
+        """
+
+        output = []
+        closest_kid = ''
+
+        # get down to the last node till there's no more valid children
+        temp_root = self.root
+        character = 1
+        left_cursor = 0
+        found_kid = False
+        while character <= len(target):
+            next_node = temp_root.child(target[left_cursor:character])
+            if next_node:
+                found_kid = True
+                temp_root = next_node
+                closest_kid += target[left_cursor:character]
+                left_cursor = character
+
+            character += 1
+        else:
+            if not found_kid and target != '':
+                return output
+            if left_cursor != len(target):
+                temp_root = temp_root.child_starts_with(target[left_cursor:])
+                closest_kid += temp_root.value
+
+        # consider removing
+        # if len(closest_kid) > len(target):
+        #    output += [closest_kid]
+
+        # search for ends from the node found
+        for i in range(len(temp_root.children)):
+            output += self._search_for_ends_save_values(temp_root.children[i], closest_kid)
+
+        return output
+
+    def _search_for_nodes_values(self, start, parent):
+
+        output = []
+        temp_root = start
+        kid = parent + temp_root.value
+        output.append(kid)
+
+        for i in range(len(temp_root.children)):
+            output += self._search_for_nodes_values(temp_root.children[i],kid)
+        return output
+
+    def _search_for_ends_save_values(self, start, parent):
         # a recurrent function that checks if the code can be ended at this point,
         # adds it to the output list and performs the same operations on the heirs
 
@@ -287,10 +392,10 @@ class RadixTree:
             output = [kid]
 
         for i in range(len(temp_root.children)):
-            output += self.__search_for_ends_save_values(temp_root.children[i], kid)
+            output += self._search_for_ends_save_values(temp_root.children[i], kid)
         return output
 
-    def __search_for_ends_count(self, start):
+    def _search_for_ends_count(self, start):
         # a recurrent function that checks if the code can be ended at this point,
         # adds it to the output list and performs the same operations on the heirs
 
@@ -300,12 +405,12 @@ class RadixTree:
             output += 1
 
         for i in range(len(temp_root.children)):
-            output += self.__search_for_ends_count(temp_root.children[i])
+            output += self._search_for_ends_count(temp_root.children[i])
         return output
 
-    def __search_for_end_by_num(self,
-                                start, number_of_el,
-                                counter, value):
+    def _search_for_end_by_num(self,
+                               start, number_of_el,
+                               counter, value):
         # a recurrent function that adds current Node.value
         # to the value arg,
         # checks if the code can be ended at this point,
@@ -323,7 +428,7 @@ class RadixTree:
         else:
             output = ''
         for i in range(len(temp_root.children)):
-            output, counter = self.__search_for_end_by_num(temp_root.children[i], number_of_el, counter, value)
+            output, counter = self._search_for_end_by_num(temp_root.children[i], number_of_el, counter, value)
             if output != '':
                 break
         return output, counter
