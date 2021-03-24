@@ -1,5 +1,5 @@
 from Node import *
-
+import numpy as np
 
 class RadixTree:
     """
@@ -27,7 +27,7 @@ class RadixTree:
     kids(target: str)
         returns a list of kids of the given string
     """
-    def __init__(self, data=None):
+    def __init__(self, data=None,from_save=False):
         """
         Initializes root as an empty string Node
         and adds each string in data parameter to the tree using
@@ -48,13 +48,16 @@ class RadixTree:
         if isinstance(data,str):
             if data == "":
                 return
-            self.add_string(data)
+            self.add(data)
             return
 
-        for string in data:
-            if string == "":
-                continue
-            self.add_string(string)
+        if from_save:
+            self._load(data)
+        else:
+            for string in data:
+                if string == "":
+                    continue
+                self.add(string)
 
     def __len__(self):
         return self._search_for_ends_count(self.root)
@@ -116,7 +119,7 @@ class RadixTree:
     def __set__(self, instance, data):
         self.__init__(data)
 
-    def add_string(self, string):
+    def add(self, string:str):
         """
         Adds the input string to the tree according to the Radix Tree structure
 
@@ -179,7 +182,7 @@ class RadixTree:
             An iterable containing strings to be added to already initialized tree
         """
         for code in data:
-            self.add_string(code)
+            self.add(code)
 
     def parents(self, target):
         """
@@ -370,6 +373,21 @@ class RadixTree:
 
         return output
 
+    def export(self,filename=None):
+        queue = [[self.root,0]]
+        count = 0
+        result = []
+        for node, id_ in queue:
+            if not len(node.children):
+                continue
+            for child in node.children:
+                count += 1
+                queue.append([child,count])
+                result.append([id_,count,child.value,child.end])
+        if filename:
+            np.save(filename,result)
+        return result
+
     def _search_for_nodes_values(self, start, parent):
 
         output = []
@@ -433,4 +451,12 @@ class RadixTree:
                 break
         return output, counter
 
+    def _load(self,data):
+        queue = {0:self.root}
+        count = 0
+        for parent, child, val, end in data:
+            count += 1
+            new = Node(val,end)
+            queue[parent].children.append(new)
+            queue[count] = new
 

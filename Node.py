@@ -34,7 +34,7 @@ class Node:
         if fails in search returns False
 
     """
-    def __init__(self, value):
+    def __init__(self, value,end=False):
         """
         Initializes value attribute with value parameter
         and children attribute with the default [] list
@@ -49,7 +49,7 @@ class Node:
         self.value = value
         # the first element in children list is devoted to indicator, which can take any value
         self.children = []
-        self.end = False
+        self.end = end
 
     def add_node(self, value):
         """

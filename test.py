@@ -96,6 +96,14 @@ class RadixTreeTest(unittest.TestCase):
                           "1", "1123", "123", "123321", "113"])
         self.assertEqual(set(tree.structural_parents("expe")), {"ex","exp"})
 
+    def test_export_import(self):
+        tree = RadixTree(["excitement", "exercise", "expel", "excellent", "extend",
+                          "exorbitant", "expense", "expensive", "expose", "exposure",
+                          "exude", "exit", "expect", "expectation", "exasperating",
+                          "1", "1123", "123", "123321", "113"])
+        self.assertEqual(set(tree),set(RadixTree(tree.export(),1)))
+        print(tree.export())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=12)
