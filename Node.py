@@ -49,7 +49,7 @@ class Node:
         self.value = value
         # the first element in children list is devoted to indicator, which can take any value
         self.children = []
-        self.end = end
+        self.end = bool(end)
 
     def add_node(self, value):
         """
@@ -65,7 +65,7 @@ class Node:
         # to add a child of a particular value to self
         self.children.append(Node(value))
 
-    def set_ending(self, end:bool):
+    def set_ending(self, end):
         """
         Sets the value of 0th position of children's list to the indicator parameter
 
@@ -75,7 +75,7 @@ class Node:
         end : bool
             Ending marker
         """
-        self.end = end
+        self.end = bool(end)
 
     def child(self, value):
         """

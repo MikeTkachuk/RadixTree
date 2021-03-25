@@ -383,7 +383,7 @@ class RadixTree:
             for child in node.children:
                 count += 1
                 queue.append([child,count])
-                result.append([id_,count,child.value,child.end])
+                result.append([id_,child.value,int(child.end)])
         if filename:
             np.save(filename,result)
         return result
@@ -454,7 +454,9 @@ class RadixTree:
     def _load(self,data):
         queue = {0:self.root}
         count = 0
-        for parent, child, val, end in data:
+        for parent, val, end in data:
+            parent = int(parent)
+            end = int(end)
             count += 1
             new = Node(val,end)
             queue[parent].children.append(new)
