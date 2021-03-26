@@ -51,6 +51,9 @@ class Node:
         self.children = []
         self.end = bool(end)
 
+    def __repr__(self):
+        return self.value + f'  {"**" if self.end else ""}'
+
     def add_node(self, value):
         """
         Initializes a new Node object using value parameter

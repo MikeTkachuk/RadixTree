@@ -1,5 +1,5 @@
 from Node import *
-import numpy as np
+import pandas as pd
 
 class RadixTree:
     """
@@ -45,13 +45,15 @@ class RadixTree:
         if data is None:
             return
 
-        if isinstance(data,str):
+        if isinstance(data,str) and not from_save:
             if data == "":
                 return
             self.add(data)
             return
 
         if from_save:
+            if isinstance(data,str):
+                data = pd.read_csv(data,index_col='id')
             self._load(data)
         else:
             for string in data:
@@ -383,9 +385,10 @@ class RadixTree:
             for child in node.children:
                 count += 1
                 queue.append([child,count])
-                result.append([id_,child.value,int(child.end)])
+                result.append((id_,child.value,int(child.end)))
         if filename:
-            np.save(filename,result)
+            to_save = pd.DataFrame.from_records(result,index='id',columns=['id','val','end'])
+            to_save.to_csv(filename)
         return result
 
     def _search_for_nodes_values(self, start, parent):
@@ -454,7 +457,10 @@ class RadixTree:
     def _load(self,data):
         queue = {0:self.root}
         count = 0
-        for parent, val, end in data:
+        if isinstance(data,pd.DataFrame):
+            data = data.itertuples()
+        for i in data:
+            parent, val, end = int(i[-3]), i[-2], bool(i[-1])
             parent = int(parent)
             end = int(end)
             count += 1
