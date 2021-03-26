@@ -31,13 +31,16 @@ class RadixTree:
         """
         Initializes root as an empty string Node
         and adds each string in data parameter to the tree using
-        add_string method
+        add_string method. Data can be a single string as well.
+        In case from_save is True data should be able to iterate over export file yielding
+        parent, value, and end in the end of the tuple.
 
         Parameters
         ----------
 
-        data: iterable
-            Any iterable containing strings that should be stored in the Radix Tree
+        data: Any
+            Any iterable containing strings or a string that should be stored in the Radix Tree
+            Or the data required to initialize the tree or the path to a csv file.
 
         """
 
@@ -150,7 +153,8 @@ class RadixTree:
                     temp_root = child_backup
             else:
                 if ever_found_node:
-                    temp_root = child_backup
+                    # noinspection PyUnboundLocalVariable
+                    temp_root = child_backup    # unconfirmed reference before assignment
                     if character - left_cursor > len(child_backup.value):
                         left_cursor = character - 1
                         ever_found_node = False
@@ -167,7 +171,7 @@ class RadixTree:
                 else:
                     temp_root.add_node(string[character - 1:])
                     temp_root = temp_root.children[-1]
-                    character = len(string) + 1
+                    character = len(string) + 1     # break?
 
             character += 1
         else:
@@ -376,6 +380,13 @@ class RadixTree:
         return output
 
     def export(self,filename=None):
+        """
+        Outputs the required information to reconstruct a RxTree as a list of tuples.
+        In case filename is not None saves the file as a csv file.
+
+        :param filename: a path where to save the export
+        :return: a list of tuples of shape (?,3) encoding the tree
+        """
         queue = [[self.root,0]]
         count = 0
         result = []
