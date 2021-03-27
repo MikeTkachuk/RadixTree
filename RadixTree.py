@@ -68,19 +68,35 @@ class RadixTree:
         return self._search_for_ends_count(self.root)
 
     def __iter__(self):
-        output = '0'
-        counter = 0
-        inner_count = -1
-        while output != '':
-            output = ''
-            for i in range(len(self.root.children)):
-                output, inner_count = self._search_for_end_by_num(self.root.children[i], counter, inner_count, '')
-                if output != '':
-                    break
-            counter += 1
-            inner_count = -1
-            if output != '':
-                yield output
+        path = []
+        skip_first = False
+
+        def depth_first(root, value='', depth=0,sk=False):
+            value += root.value
+
+            if root.end and not sk:
+                return value, sk
+
+            for i in range(path[depth] if depth < len(path) else 0,len(root.children)):
+
+                if not depth < len(path):
+                    path.append(i)
+                    sk = False
+                child = root.children[i]
+                out, sk = depth_first(child,value,depth+1,sk)
+                if out != '':
+                    return out, sk
+            else:
+                if depth != 0:
+                    path.pop(-1)
+                return '', True
+
+        while True:
+            output, _ = depth_first(self.root,sk=skip_first)
+            if output == '':
+                break
+            yield output
+            skip_first = True
 
     def __contains__(self, target):
         """
@@ -441,7 +457,7 @@ class RadixTree:
         return output
 
     def _search_for_end_by_num(self,
-                               start, number_of_el,
+                               start, el_id,
                                counter, value):
         # a recurrent function that adds current Node.value
         # to the value arg,
@@ -455,12 +471,12 @@ class RadixTree:
         if temp_root.end:
             counter = counter + 1
         value = value + temp_root.value
-        if counter == number_of_el:
+        if counter == el_id:
             return value, counter
         else:
             output = ''
         for i in range(len(temp_root.children)):
-            output, counter = self._search_for_end_by_num(temp_root.children[i], number_of_el, counter, value)
+            output, counter = self._search_for_end_by_num(temp_root.children[i], el_id, counter, value)
             if output != '':
                 break
         return output, counter

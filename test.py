@@ -89,6 +89,19 @@ class RadixTreeTest(unittest.TestCase):
                           "1", "1123", "123", "123321", "113"])
         self.assertEqual(tree.parents("expel"), [])
 
+    def test_iterate_1(self):
+        data = {"excitement", "exercise", "expel", "excellent", "extend", "exorbitant", "expense", "expensive",
+                "expose", "exposure", "exude", "exit", "expect", "expectation", "exasperating", "1", "1123", "123",
+                "123321", "113"}
+        tree = RadixTree(["excitement", "exercise", "expel", "excellent", "extend",
+                          "exorbitant", "expense", "expensive", "expose", "exposure",
+                          "exude", "exit", "expect", "expectation", "exasperating",
+                          "1", "1123", "123", "123321", "113"])
+        res = []
+        for i in tree:
+            res.append(i)
+        self.assertEqual(set(res),data)
+
     def test_StructParentsFunc_1(self):
         tree = RadixTree(["excitement", "exercise", "expel", "excellent", "extend",
                           "exorbitant", "expense", "expensive", "expose", "exposure",
@@ -102,7 +115,6 @@ class RadixTreeTest(unittest.TestCase):
                           "exude", "exit", "expect", "expectation", "exasperating",
                           "1", "1123", "123", "123321", "113"])
         self.assertEqual(set(tree),set(RadixTree(tree.export(),1)))
-        print(tree.export())
 
 
 if __name__ == "__main__":
