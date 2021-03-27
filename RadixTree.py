@@ -22,10 +22,21 @@ class RadixTree:
         Adds every element of data to the tree
 
     parents(target: str)
-        returns a list of parents of the given string. It may not be in the tree
+        :returns a list of parents of the given string. It may not be in the tree
 
     kids(target: str)
-        returns a list of kids of the given string
+        :returns a list of kids of the given string
+
+    structural_parents(target: str)
+        :returns a list of accumulated strings on the root - target path. Excludes the target if it iss stored
+
+    structural_kids(target: str)
+        :returns a list of all possible strings formed by the kids nodes regardless of the fact
+        if the string is stored in a tree
+
+    export(filename[Optional]: str)
+        :returns a list of tuples containing info required to reconstruct the tree via __init__
+        saves it as a csv file if a filename is specified
     """
     def __init__(self, data=None,from_save=False):
         """
@@ -322,7 +333,7 @@ class RadixTree:
 
         """
 
-        # the function simply descends from the root down to the target collecting all the possible 'end's
+        # the function simply descends from the root down to the target collecting all the possible values
         output = []
         parent = ''
         temp_root = self.root
@@ -391,7 +402,7 @@ class RadixTree:
 
         # search for ends from the node found
         for i in range(len(temp_root.children)):
-            output += self._search_for_ends_save_values(temp_root.children[i], closest_kid)
+            output += self._search_for_nodes_values(temp_root.children[i], closest_kid)
 
         return output
 
