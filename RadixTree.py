@@ -1,6 +1,7 @@
 from Node import *
 import pandas as pd
 
+
 class RadixTree:
     """
     A class used to store strings as a Radix Tree
@@ -38,7 +39,8 @@ class RadixTree:
         :returns a list of tuples containing info required to reconstruct the tree via __init__
         saves it as a csv file if a filename is specified
     """
-    def __init__(self, data=None,from_save=False):
+
+    def __init__(self, data=None, from_save=False):
         """
         Initializes root as an empty string Node
         and adds each string in data parameter to the tree using
@@ -59,15 +61,15 @@ class RadixTree:
         if data is None:
             return
 
-        if isinstance(data,str) and not from_save:
+        if isinstance(data, str) and not from_save:
             if data == "":
                 return
             self.add(data)
             return
 
         if from_save:
-            if isinstance(data,str):
-                data = pd.read_csv(data,index_col='id')
+            if isinstance(data, str):
+                data = pd.read_csv(data, index_col='id')
             self._load(data)
         else:
             for string in data:
@@ -82,19 +84,19 @@ class RadixTree:
         path = []
         skip_first = False
 
-        def depth_first(root, value='', depth=0,sk=False):
+        def depth_first(root, value='', depth=0, sk=False):
             value += root.value
 
             if root.end and not sk:
                 return value, sk
 
-            for i in range(path[depth] if depth < len(path) else 0,len(root.children)):
+            for i in range(path[depth] if depth < len(path) else 0, len(root.children)):
 
                 if not depth < len(path):
                     path.append(i)
                     sk = False
                 child = root.children[i]
-                out, sk = depth_first(child,value,depth+1,sk)
+                out, sk = depth_first(child, value, depth + 1, sk)
                 if out != '':
                     return out, sk
             else:
@@ -103,7 +105,7 @@ class RadixTree:
                 return '', True
 
         while True:
-            output, _ = depth_first(self.root,sk=skip_first)
+            output, _ = depth_first(self.root, sk=skip_first)
             if output == '':
                 break
             yield output
@@ -151,7 +153,7 @@ class RadixTree:
     def __set__(self, instance, data):
         self.__init__(data)
 
-    def add(self, string:str):
+    def add(self, string):
         """
         Adds the input string to the tree according to the Radix Tree structure
 
@@ -163,46 +165,45 @@ class RadixTree:
         """
 
         # this function adds each character of the code step by step according to the Radix Tree concept
+        # 0 case: perfect fit to a node, set an ending there
+        # 1 case: merely appending the string's tail to the temp_root
+        # 2 case: subdividing the temp_root, setting an ending to the top part
+        # 3 case: subdividing the temp_root, suspending the difference tail to the top part
         temp_root = self.root
         left_cursor = 0
         character = 1
-        ever_found_node = False
         # descending till the first error appears
         while character <= len(string):
-            child = temp_root.child_starts_with(string[left_cursor:character])
+            child = temp_root.child(string[left_cursor:character])
+            bool_child = temp_root.child_starts_with(string[left_cursor:character])
             if child:
-                ever_found_node = True
-                child_backup = child
-                # handles repetitive string addition
-                if character == len(string):
-                    # jumps to the node that already has the string written
-                    # means that the 'end' indicator is not falsely placed on the node above
-                    temp_root = child_backup
-            else:
-                if ever_found_node:
-                    # noinspection PyUnboundLocalVariable
-                    temp_root = child_backup    # unconfirmed reference before assignment
-                    if character - left_cursor > len(child_backup.value):
-                        left_cursor = character - 1
-                        ever_found_node = False
-                        continue
-                    else:
-                        lower_part = Node(temp_root.value[character - left_cursor - 1:])
-                        lower_part.children = temp_root.children
-                        lower_part.end = temp_root.end
-                        temp_root.value = temp_root.value[:character - left_cursor - 1]
-                        temp_root.children = [lower_part, Node(string[character - 1:])]
-                        temp_root.end = False
-                        temp_root = temp_root.children[-1]
-                        character = len(string) + 1
-                else:
-                    temp_root.add_node(string[character - 1:])
-                    temp_root = temp_root.children[-1]
-                    character = len(string) + 1     # break?
+                temp_root = child
+                left_cursor = character
+                if character == len(string):  # handles case 0
+                    temp_root.set_ending(True)
+                    return
+            elif bool_child:
+                val = bool_child.value
+                if character == len(string):  # handles case 2
+                    bottom = Node(val[character - left_cursor:], bool_child.end)
+                    bottom.children = bool_child.children
+                    bool_child.children = [bottom]
+                    bool_child.value = val[:character - left_cursor]
+                    bool_child.end = True
+                    return
+                if bool_child.value[:character - left_cursor+1] \
+                        != string[left_cursor:character+1]:  # handles case 3
+                    bottom = Node(val[character - left_cursor:], bool_child.end)
+                    bottom.children = bool_child.children
+                    bool_child.children = [bottom,Node(string[character:],True)]
+                    bool_child.value = val[:character - left_cursor]
+                    bool_child.end = False
+                    return
 
+            else:
+                temp_root.children.append(Node(string[left_cursor:], True))  # handles case 1
+                return
             character += 1
-        else:
-            temp_root.set_ending(True)
 
     def add_multiple(self, data):
         """
@@ -274,7 +275,7 @@ class RadixTree:
 
         output: list of str
             A list containing all of the parent strings found.
-            Returns an empty list if no parents found
+            Returns an empty list if no kids found
 
         """
 
@@ -307,8 +308,8 @@ class RadixTree:
         #    output += [closest_kid]
 
         # search for ends from the node found
-        for i in range(len(temp_root.children)):
-            output += self._search_for_ends_save_values(temp_root.children[i], closest_kid)
+        for child in temp_root.children:
+            output += self._search_for_ends_save_values(child, closest_kid)
 
         return output
 
@@ -401,12 +402,12 @@ class RadixTree:
         #    output += [closest_kid]
 
         # search for ends from the node found
-        for i in range(len(temp_root.children)):
-            output += self._search_for_nodes_values(temp_root.children[i], closest_kid)
+        for child in temp_root.children:
+            output += self._search_for_nodes_values(child, closest_kid)
 
         return output
 
-    def export(self,filename=None):
+    def export(self, filename=None):
         """
         Outputs the required information to reconstruct a RxTree as a list of tuples.
         In case filename is not None saves the file as a csv file.
@@ -414,7 +415,7 @@ class RadixTree:
         :param filename: a path where to save the export
         :return: a list of tuples of shape (?,3) encoding the tree
         """
-        queue = [[self.root,0]]
+        queue = [[self.root, 0]]
         count = 0
         result = []
         for node, id_ in queue:
@@ -422,10 +423,10 @@ class RadixTree:
                 continue
             for child in node.children:
                 count += 1
-                queue.append([child,count])
-                result.append((id_,child.value,int(child.end)))
+                queue.append([child, count])
+                result.append((id_, child.value, int(child.end)))
         if filename:
-            to_save = pd.DataFrame.from_records(result,index='id',columns=['id','val','end'])
+            to_save = pd.DataFrame.from_records(result, index='id', columns=['id', 'val', 'end'])
             to_save.to_csv(filename)
         return result
 
@@ -436,8 +437,8 @@ class RadixTree:
         kid = parent + temp_root.value
         output.append(kid)
 
-        for i in range(len(temp_root.children)):
-            output += self._search_for_nodes_values(temp_root.children[i],kid)
+        for child in temp_root.children:
+            output += self._search_for_nodes_values(child, kid)
         return output
 
     def _search_for_ends_save_values(self, start, parent):
@@ -450,8 +451,8 @@ class RadixTree:
         if temp_root.end:
             output = [kid]
 
-        for i in range(len(temp_root.children)):
-            output += self._search_for_ends_save_values(temp_root.children[i], kid)
+        for child in temp_root.children:
+            output += self._search_for_ends_save_values(child, kid)
         return output
 
     def _search_for_ends_count(self, start):
@@ -463,8 +464,8 @@ class RadixTree:
         if temp_root.end:
             output += 1
 
-        for i in range(len(temp_root.children)):
-            output += self._search_for_ends_count(temp_root.children[i])
+        for child in temp_root.children:
+            output += self._search_for_ends_count(child)
         return output
 
     def _search_for_end_by_num(self,
@@ -486,23 +487,20 @@ class RadixTree:
             return value, counter
         else:
             output = ''
-        for i in range(len(temp_root.children)):
-            output, counter = self._search_for_end_by_num(temp_root.children[i], el_id, counter, value)
+        for child in temp_root.children:
+            output, counter = self._search_for_end_by_num(child, el_id, counter, value)
             if output != '':
                 break
         return output, counter
 
-    def _load(self,data):
-        queue = {0:self.root}
+    def _load(self, data):
+        queue = {0: self.root}
         count = 0
-        if isinstance(data,pd.DataFrame):
+        if isinstance(data, pd.DataFrame):
             data = data.itertuples()
         for i in data:
-            parent, val, end = int(i[-3]), i[-2], bool(i[-1])
-            parent = int(parent)
-            end = int(end)
+            parent, val, end = int(i[-3]), str(i[-2]), bool(i[-1])
             count += 1
-            new = Node(val,end)
+            new = Node(val, end)
             queue[parent].children.append(new)
             queue[count] = new
-

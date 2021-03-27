@@ -6,6 +6,10 @@ import unittest
 
 
 class RadixTreeTest(unittest.TestCase):
+    def test_init_1(self):
+        tree = RadixTree(["mother","mot","fuse","fusing", "mother", "mot"])
+        self.assertEqual(set(tree), {"mother","mot","fuse","fusing"})
+
     def test_LenAttr_1(self):
         tree = RadixTree([""])
         self.assertEqual(len(tree), 0)
@@ -109,7 +113,7 @@ class RadixTreeTest(unittest.TestCase):
                           "1", "1123", "123", "123321", "113"])
         self.assertEqual(set(tree.structural_parents("expe")), {"ex","exp"})
 
-    def test_export_import(self):
+    def test_export_import1(self):
         tree = RadixTree(["excitement", "exercise", "expel", "excellent", "extend",
                           "exorbitant", "expense", "expensive", "expose", "exposure",
                           "exude", "exit", "expect", "expectation", "exasperating",

@@ -43,11 +43,10 @@ class Node:
         ----------
 
         value
-            Any object or value the Node should store
+            Any object or value the Node should store that supports slicing and concatenation via '+'
 
         """
         self.value = value
-        # the first element in children list is devoted to indicator, which can take any value
         self.children = []
         self.end = bool(end)
 
@@ -96,11 +95,10 @@ class Node:
         False: in case no proper child was found
         """
         # checking the presence of a given value, in true case return the node desired
-        check_range = range(len(self.children))
 
-        for i in check_range:
-            if value == self.children[i].value:
-                return self.children[i]
+        for child in self.children:
+            if value == child.value:
+                return child
         else:
             return False
 
@@ -122,10 +120,8 @@ class Node:
 
         """
         # checking the presence of at least one child that starts with given value, return the desired child
-        length = len(value)
-        check_range = range(len(self.children))
-        for i in check_range:
-            if self.children[i].value[:length] == value:
-                return self.children[i]
+        for child in self.children:
+            if child.value[:len(value)] == value:
+                return child
         else:
             return False
